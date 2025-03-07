@@ -1,19 +1,5 @@
-﻿// See https://aka.ms/new-console-template for more information
-using System.Text;
+﻿using System.Text;
 
-Console.WriteLine("Hello, World!");
-
-/// slide 1: what is a scripting language and why do we want one for consignly?
-/// 
-/// slide 2: what are the key components for a scripting engine
-/// 
-/// slide 3: let's have crack at building one! A really simple language where kind anything goes.
-/// Perhaps it can do maths, so will need variables and memory and can print an output string.
-/// The structure could be something like
-/// 
-/// $i = 1 + 2
-/// Print("number = " + $i)
-/// 
 /// Here we have tokens de-marked by whitespace
 /// The use of '=', '+' to do assignment and add.
 /// declare and access variables using '$'
@@ -25,7 +11,9 @@ call Print ""number = "" + $i
 call Print ""The End!"" 
 ".Trim();
 
-// tokenize the code
+// Lexical analysis on the source code:
+
+// the below are some variables to track particular parts of things
 var inQuotes = false;
 var tokens = new List<string>();
 var currentTokenBuilder = new StringBuilder();
@@ -81,6 +69,12 @@ for (var ptr = 0; ptr < code.Length; ptr++)
 
 CaptureToken(); // grab last token
 tokens.Add("\n"); // add end statement
+
+Console.WriteLine($"Lexical analysis tokens:");
+for(var i = 0; i < tokens.Count; i++)
+{
+    Console.WriteLine($"{i}: {tokens[i]}");
+}
 
 /// Execute the tokens, this is a state machine that walks it's way
 /// through the list of tokens and decides what to do for each.
