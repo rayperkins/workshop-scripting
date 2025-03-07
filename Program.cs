@@ -6,9 +6,10 @@
 /// and a function call where the arguments is the line
 
 var code = @"
-$i = 1 + 2
+$i = 1 + 2 + 3
 call Print ""number = "" + $i
 call Print ""The End!"" 
+gotoif 0 1
 ".Trim();
 
 // Lexical analysis on the source code:
@@ -79,6 +80,7 @@ for(var i = 0; i < tokens.Count; i++)
 /// Execute the tokens, this is a state machine that walks it's way
 /// through the list of tokens and decides what to do for each.
 var functionTarget = default(string);
+var gotoTarget = default(int?);
 var variableTarget = default(string);
 var variableMerge = default(object);
 var variables = new Dictionary<string, object>();
@@ -123,6 +125,13 @@ for (var ptr = 0; ptr < tokens.Count; ptr++)
             }
             functionTarget = null;
             break;
+        case (_, "\n", _) when gotoTarget != null: // run function
+            if(variableMerge is double d && d != 0 )
+            {
+                ptr = gotoTarget.Value;
+            }
+            gotoTarget = null;
+            break;
         case (_, "+", _): // assume the left side is already the value of variableMerge
             var nextValue = GetTokenValue(next);
             variableMerge = (variableMerge, nextValue) switch
@@ -137,7 +146,7 @@ for (var ptr = 0; ptr < tokens.Count; ptr++)
             };
             ptr ++;
             break;
-        case (_, "=", _): // assign something, assume the prev is the target and next is merge
+        case (_, "=", _): // assign something, assume the prev is the target and next is merge. eg $i = 1 + 2 + 3
             if(prev[0] == '$')
             {
                 variableTarget = prev;
@@ -149,6 +158,14 @@ for (var ptr = 0; ptr < tokens.Count; ptr++)
             functionTarget = current;
             variableMerge = GetTokenValue(next);
             ptr ++;
+            break;
+        case ("gotoif", _, _): // call function
+            if(int.TryParse(current, out var addr))
+            {
+                gotoTarget = addr;
+                variableMerge = GetTokenValue(next);
+                ptr ++;
+            }
             break;
         case (_, _, _) when variableTarget != null: 
             break;
